@@ -1,54 +1,52 @@
-# Prueba Técnica Accenture — To-Do App (Ionic + Angular + Cordova)
+# Accenture Technical Test — To-Do App (Ionic + Angular + Cordova)
 
-Aplicación híbrida de tipo To-Do desarrollada con Ionic + Angular y empaquetada con Cordova para Android/iOS.  
-Incluye persistencia local, categorización y filtrado de tareas, y feature flags usando Firebase Remote Config.
+Hybrid To-Do application built with Ionic + Angular and packaged with Cordova for Android/iOS.
+It includes local persistence, task categorization and filtering, and feature flags using Firebase Remote Config.
 
-## Funcionalidades implementadas
+## Features
 
-- Crear tareas
-- Marcar tareas como completadas
-- Eliminar tareas (habilitable/deshabilitable por feature flag)
-- Categorías (asignación al crear) + filtrado por categoría (habilitable/deshabilitable por feature flag)
-- Filtro por estado: Todas / Activas / Completadas
-- Persistencia local con Ionic Storage
-- Feature flags con Firebase Remote Config:
-  - `enable_categories`
-  - `enable_delete`
-- Interfaz minimalista optimizada para uso móvil (componentes Ionic y acción de swipe)
+- Create tasks
+- Mark tasks as completed
+- Delete tasks (enabled/disabled via feature flag)
+- Categories (assign on creation) + filter by category (enabled/disabled via feature flag)
+- Status filter: All / Active / Completed
+- Local persistence with Ionic Storage
+- Feature flags with Firebase Remote Config:
+  - enable_categories
+  - enable_delete
 
-## Arquitectura (enfoque limpio)
+## Firebase Remote Config (Feature Flags)
 
-Estructura por responsabilidades:
+Create and publish these boolean parameters in Firebase Remote Config:
 
-- `src/app/core/`
-  - `models/` (modelos de dominio: Task, Category)
-- `src/app/domain/`
-  - `repositories/` (contratos de repositorios)
-- `src/app/data/`
-  - `repositories/` (implementaciones de repositorios)
-  - `storage/` (persistencia local con Ionic Storage)
-  - `firebase/` (servicio de Remote Config)
-- `src/app/presentation/`
-  - `state/` (Facade para casos de uso consumidos por la UI)
-- `src/app/home/`
-  - UI (HomePage)
+- enable_categories
+  - true: shows category selector and category filter
+  - false: hides category selector and filter
+- enable_delete
+  - true: enables delete action
+  - false: hides delete action
 
-La UI consume un Facade, que delega en capas de dominio/datos. La persistencia y los feature flags están aislados en servicios para mantener la UI simple y testeable.
+The app includes default values so it still works if Remote Config fails or the device is offline.
 
-## Requisitos
+## Evidence
+
+Screenshots/videos are located in:
+
+- evidence/
+
+---
+
+# 1) Prerequisites
+
+## 1.1 Common prerequisites (Windows and macOS)
 
 - Node.js + npm
+- Git
 - Ionic CLI
 - Cordova CLI
-- Java JDK (build Android)
-- Android SDK + Build Tools
-- ADB (opcional, para instalar en dispositivo)
 
-## Instalación y ejecución
-
-Desde la raíz del proyecto:
+Global install (if needed):
 
 ```bash
-npm install
-ionic serve
+npm i -g @ionic/cli cordova
 ```
