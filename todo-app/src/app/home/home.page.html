@@ -1,20 +1,32 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+    <ion-title>To-Do</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="ion-padding">
+  <ng-container *ngIf="tasks$ | async as tasks">
+    <p *ngIf="tasks.length === 0">No tienes tareas aún.</p>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+    <ion-list *ngIf="tasks.length > 0">
+      <ion-item *ngFor="let task of tasks; trackBy: trackByTaskId">
+        <ion-checkbox
+          slot="start"
+          [checked]="task.completed"
+          (ionChange)="onToggle(task.id)"
+        ></ion-checkbox>
+
+        <ion-label>
+          <h2 [style.textDecoration]="task.completed ? 'line-through' : 'none'">
+            {{ task.title }}
+          </h2>
+          <p>ID: {{ task.id }}</p>
+        </ion-label>
+
+        <ion-button slot="end" color="danger" fill="clear" (click)="onDelete(task.id)">
+          Eliminar
+        </ion-button>
+      </ion-item>
+    </ion-list>
+  </ng-container>
 </ion-content>
