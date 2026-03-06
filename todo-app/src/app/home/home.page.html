@@ -5,10 +5,26 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ng-container *ngIf="tasks$ | async as tasks">
-    <p *ngIf="tasks.length === 0">No tienes tareas aún.</p>
+  <ion-item>
+    <ion-input
+      label="Nueva tarea"
+      labelPlacement="stacked"
+      placeholder="Ej: Comprar leche"
+      [(ngModel)]="newTitle"
+      (keyup.enter)="onAdd()"
+    ></ion-input>
+  </ion-item>
 
-    <ion-list *ngIf="tasks.length > 0">
+  <ion-button expand="block" class="ion-margin-top" (click)="onAdd()">
+    Agregar
+  </ion-button>
+
+  <ng-container *ngIf="tasks$ | async as tasks">
+    <p *ngIf="tasks.length === 0" class="ion-margin-top">
+      No tienes tareas aún.
+    </p>
+
+    <ion-list *ngIf="tasks.length > 0" class="ion-margin-top">
       <ion-item *ngFor="let task of tasks; trackBy: trackByTaskId">
         <ion-checkbox
           slot="start"
@@ -23,7 +39,12 @@
           <p>ID: {{ task.id }}</p>
         </ion-label>
 
-        <ion-button slot="end" color="danger" fill="clear" (click)="onDelete(task.id)">
+        <ion-button
+          slot="end"
+          color="danger"
+          fill="clear"
+          (click)="onDelete(task.id)"
+        >
           Eliminar
         </ion-button>
       </ion-item>

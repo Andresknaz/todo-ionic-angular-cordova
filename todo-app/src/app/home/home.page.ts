@@ -1,3 +1,6 @@
+import { FormsModule } from '@angular/forms';
+import { IonInput } from '@ionic/angular/standalone';
+
 import { Component, OnInit } from '@angular/core';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import {
@@ -25,6 +28,7 @@ import { TaskFacade } from '../presentation/state/task.facade';
     AsyncPipe,
     NgIf,
     NgFor,
+    FormsModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -34,10 +38,12 @@ import { TaskFacade } from '../presentation/state/task.facade';
     IonLabel,
     IonCheckbox,
     IonButton,
+    IonInput,
   ],
 })
 export class HomePage implements OnInit {
   tasks$!: Observable<Task[]>;
+  newTitle = '';
 
   constructor(private taskFacade: TaskFacade) {}
 
@@ -49,6 +55,14 @@ export class HomePage implements OnInit {
   trackByTaskId(_: number, task: Task): string {
     return task.id;
   }
+  
+  async onAdd(): Promise<void> {
+  const title = this.newTitle.trim();
+  if (!title) return;
+
+  await this.taskFacade.addTask(title, null);
+  this.newTitle = '';
+}
 
   async onToggle(taskId: string): Promise<void> {
     await this.taskFacade.toggleTask(taskId);
