@@ -68,3 +68,9 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+deliverables/
+deliverables/*.keystore
+deliverables/*.jks
+deliverables/*.apk
+deliverables/*.aab
