@@ -5,6 +5,7 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <!-- Formulario: Agregar tarea -->
   <ion-item>
     <ion-input
       label="Nueva tarea"
@@ -15,13 +16,40 @@
     ></ion-input>
   </ion-item>
 
+  <ion-item class="ion-margin-top">
+    <ion-select
+      label="Categoría"
+      labelPlacement="stacked"
+      [(ngModel)]="newCategoryId"
+    >
+      <ion-select-option *ngFor="let c of categories" [value]="c.id">
+        {{ c.name }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
   <ion-button expand="block" class="ion-margin-top" (click)="onAdd()">
     Agregar
   </ion-button>
 
-  <ng-container *ngIf="tasks$ | async as tasks">
+  <!-- Filtro -->
+  <ion-item class="ion-margin-top">
+    <ion-select
+      label="Filtrar por categoría"
+      labelPlacement="stacked"
+      (ionChange)="onFilterCategoryChange($event.detail.value)"
+    >
+      <ion-select-option [value]="null">Todas</ion-select-option>
+      <ion-select-option *ngFor="let c of categories" [value]="c.id">
+        {{ c.name }}
+      </ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <!-- Lista filtrada -->
+  <ng-container *ngIf="filteredTasks$ | async as tasks">
     <p *ngIf="tasks.length === 0" class="ion-margin-top">
-      No tienes tareas aún.
+      No tienes tareas para este filtro.
     </p>
 
     <ion-list *ngIf="tasks.length > 0" class="ion-margin-top">
@@ -36,7 +64,7 @@
           <h2 [style.textDecoration]="task.completed ? 'line-through' : 'none'">
             {{ task.title }}
           </h2>
-          <p>ID: {{ task.id }}</p>
+          <p>Categoría: {{ getCategoryName(task.categoryId) }}</p>
         </ion-label>
 
         <ion-button
