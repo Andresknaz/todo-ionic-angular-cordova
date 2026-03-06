@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,45 +10,83 @@ import {
   IonItem,
   IonLabel,
   IonCheckbox,
-  IonButton,
   IonInput,
   IonSelect,
   IonSelectOption,
+  IonButton,
+  IonButtons,
+  IonBadge,
+  IonChip,
+  IonCard,
+  IonCardContent,
+  IonIcon,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonSegment,
+  IonSegmentButton,
 } from '@ionic/angular/standalone';
 
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+
 import { Task } from '../core/models/task.model';
-import { TaskFacade } from '../presentation/state/task.facade';
 import { Category } from '../core/models/category.model';
+
+import { TaskFacade } from '../presentation/state/task.facade';
+import {
+  RemoteConfigService,
+  FeatureFlags,
+} from '../data/firebase/remote-config.service';
+
+import { addIcons } from 'ionicons';
+import { addOutline, trashOutline } from 'ionicons/icons';
+
+type StatusFilter = 'all' | 'active' | 'completed';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     NgIf,
     NgFor,
     FormsModule,
+
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
+
+    IonCard,
+    IonCardContent,
+
     IonItem,
     IonLabel,
-    IonCheckbox,
-    IonButton,
     IonInput,
     IonSelect,
     IonSelectOption,
+
+    IonButtons,
+    IonButton,
+    IonBadge,
+    IonIcon,
+    IonChip,
+
+    IonSegment,
+    IonSegmentButton,
+
+    IonList,
+    IonCheckbox,
+
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
   ],
 })
 export class HomePage implements OnInit {
-  tasks$!: Observable<Task[]>;
-  filteredTasks$!: Observable<Task[]>;
-
   newTitle = '';
   newCategoryId: string | null = 'work';
 
@@ -59,23 +97,56 @@ export class HomePage implements OnInit {
     { id: 'home', name: 'Hogar' },
   ];
 
-  // null = "Todas"
-  private selectedCategoryIdSubject = new BehaviorSubject<string | null>(null);
+  tasks$!: Observable<Task[]>;
+  filteredTasks$!: Observable<Task[]>;
+  flags$!: Observable<FeatureFlags>;
 
-  constructor(private taskFacade: TaskFacade) {}
+  private selectedCategoryIdSubject = new BehaviorSubject<string | null>(null);
+  private statusFilterSubject = new BehaviorSubject<
+    'all' | 'active' | 'completed'
+  >('all');
+
+  setStatusFilter(value: any): void {
+    const v = String(value ?? 'all');
+    const safe: StatusFilter = v === 'active' || v === 'completed' ? v : 'all';
+    this.statusFilterSubject.next(safe);
+  }
+
+  constructor(
+    private taskFacade: TaskFacade,
+    private remoteConfig: RemoteConfigService,
+  ) {
+    addIcons({ addOutline, trashOutline });
+  }
 
   async ngOnInit(): Promise<void> {
+    this.flags$ = this.remoteConfig.flags$;
+
+    await this.remoteConfig.init();
+
     await this.taskFacade.init();
     this.tasks$ = this.taskFacade.tasks$;
 
     this.filteredTasks$ = combineLatest([
       this.tasks$,
       this.selectedCategoryIdSubject.asObservable(),
+      this.statusFilterSubject.asObservable(),
     ]).pipe(
-      map(([tasks, selectedCategoryId]) => {
-        if (!selectedCategoryId) return tasks;
-        return tasks.filter(t => t.categoryId === selectedCategoryId);
-      })
+      map(([tasks, selectedCategoryId, status]) => {
+        let result = tasks;
+
+        if (selectedCategoryId) {
+          result = result.filter((t) => t.categoryId === selectedCategoryId);
+        }
+
+        if (status === 'active') {
+          result = result.filter((t) => !t.completed);
+        } else if (status === 'completed') {
+          result = result.filter((t) => t.completed);
+        }
+
+        return result;
+      }),
     );
   }
 
@@ -95,9 +166,15 @@ export class HomePage implements OnInit {
     this.selectedCategoryIdSubject.next(categoryId);
   }
 
+  onStatusFilterChange(value: StatusFilter): void {
+    this.statusFilterSubject.next(value);
+  }
+
   getCategoryName(categoryId: string | null): string {
     if (!categoryId) return 'Sin categoría';
-    return this.categories.find(c => c.id === categoryId)?.name ?? 'Sin categoría';
+    return (
+      this.categories.find((c) => c.id === categoryId)?.name ?? 'Sin categoría'
+    );
   }
 
   async onToggle(taskId: string): Promise<void> {

@@ -7,6 +7,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({ providedIn: 'root' })
 export class TaskRepositoryImpl implements TaskRepository {
+  private saveTimer: any = null;
+
+  private scheduleSave(tasks: Task[]): void {
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => {
+      void this.taskStorage.saveTasks(tasks);
+    }, 300);
+  }
+
   private readonly _tasks$ = new BehaviorSubject<Task[]>([]);
   readonly tasks$ = this._tasks$.asObservable();
 
@@ -37,26 +46,26 @@ export class TaskRepositoryImpl implements TaskRepository {
 
     const updated = [newTask, ...this._tasks$.value];
     this._tasks$.next(updated);
-    await this.taskStorage.saveTasks(updated);
+    this.scheduleSave(updated);
   }
 
   async toggle(taskId: string): Promise<void> {
     await this.init();
 
-    const updated = this._tasks$.value.map(t =>
-      t.id === taskId ? { ...t, completed: !t.completed } : t
+    const updated = this._tasks$.value.map((t) =>
+      t.id === taskId ? { ...t, completed: !t.completed } : t,
     );
 
     this._tasks$.next(updated);
-    await this.taskStorage.saveTasks(updated);
+    this.scheduleSave(updated);
   }
 
   async remove(taskId: string): Promise<void> {
     await this.init();
 
-    const updated = this._tasks$.value.filter(t => t.id !== taskId);
+    const updated = this._tasks$.value.filter((t) => t.id !== taskId);
     this._tasks$.next(updated);
-    await this.taskStorage.saveTasks(updated);
+    this.scheduleSave(updated);
   }
 
   async clear(): Promise<void> {
